@@ -1,4 +1,5 @@
 import { DisplayMode } from "./DisplayMode";
+import { ScanMode } from "./ScanMode";
 import { Title } from "./Title";
 
 export const Configuration = () => {
@@ -6,6 +7,7 @@ export const Configuration = () => {
     <div>
       <Title />
       <DisplayMode />
+      <ScanMode />
     </div>
   );
 };
