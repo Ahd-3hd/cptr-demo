@@ -7,7 +7,8 @@ export const Phone = () => {
 
         <video
           src="/Delivery.mp4"
-          autoPlay
+          autoPlay={false}
+          controls
           muted
           loop
           className="w-full h-full object-cover"

@@ -6,8 +6,10 @@ export const Configuration = () => {
   return (
     <div>
       <Title />
-      <DisplayMode />
-      <ScanMode />
+      <div className="space-y-8">
+        <DisplayMode />
+        <ScanMode />
+      </div>
     </div>
   );
 };
