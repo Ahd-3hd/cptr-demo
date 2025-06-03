@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { useEffect, useRef, useState } from "react";
 
 export interface Prediction {
@@ -15,10 +16,13 @@ export const Phone = () => {
   const [finalDecision, setFinalDecision] = useState<{
     title: string;
     description: string;
+    reasonCode: string;
   } | null>(null);
 
   useEffect(() => {
     let worker: Worker;
+    let isLooping = false;
+    let shouldContinuePredictions = false;
 
     async function initWorker() {
       worker = new Worker("/worker.js", { type: "classic" });
@@ -32,9 +36,27 @@ export const Phone = () => {
     }
 
     async function predictLoop() {
-      if (!videoRef.current) return;
+      if (!videoRef.current || isLooping) return;
 
       const video = videoRef.current;
+
+      if (video.paused || video.ended || video.readyState < 2) {
+        worker.postMessage({
+          type: "video-not-playing",
+          reason: video.paused ? "paused" : video.ended ? "ended" : "not-ready",
+        });
+        shouldContinuePredictions = false;
+        isLooping = false;
+        return;
+      }
+
+      if (!shouldContinuePredictions) {
+        isLooping = false;
+        return;
+      }
+
+      isLooping = true;
+
       const videoWidth = video.videoWidth;
       const videoHeight = video.videoHeight;
 
@@ -52,21 +74,45 @@ export const Phone = () => {
         resizeWidth = Math.round(MODEL_HEIGHT * videoAspectRatio);
       }
 
-      const bitmap = await createImageBitmap(video, {
-        resizeWidth,
-        resizeHeight,
-        resizeQuality: "high",
-      });
+      try {
+        const bitmap = await createImageBitmap(video, {
+          resizeWidth,
+          resizeHeight,
+          resizeQuality: "high",
+        });
 
-      worker.postMessage(
-        {
-          type: "predict",
-          bitmap,
-          width: MODEL_WIDTH,
-          height: MODEL_HEIGHT,
-        },
-        [bitmap]
-      );
+        worker.postMessage(
+          {
+            type: "predict",
+            bitmap,
+            width: MODEL_WIDTH,
+            height: MODEL_HEIGHT,
+          },
+          [bitmap]
+        );
+      } catch (error) {
+        console.error("Error creating bitmap:", error);
+        isLooping = false;
+      }
+    }
+
+    function startPredictionsWhenReady() {
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (video.readyState >= 2 && !video.paused && !video.ended) {
+        console.log("Video is ready and playing, starting predictions");
+        shouldContinuePredictions = true;
+        isLooping = false;
+        predictLoop();
+      } else {
+        console.log("Video not ready yet, waiting...", {
+          readyState: video.readyState,
+          paused: video.paused,
+          ended: video.ended,
+        });
+        setTimeout(startPredictionsWhenReady, 100);
+      }
     }
 
     async function main() {
@@ -76,24 +122,96 @@ export const Phone = () => {
         worker.onmessage = (e) => {
           if (e.data.type === "prediction") {
             const decision = e.data.decision;
-
             setFinalDecision(decision);
 
-            predictLoop();
+            isLooping = false;
+
+            if (shouldContinuePredictions) {
+              setTimeout(predictLoop, 100);
+            }
           }
         };
 
-        predictLoop();
+        const video = videoRef.current;
+        if (video) {
+          const handlePlay = () => {
+            console.log("Video play event triggered");
+            startPredictionsWhenReady();
+          };
+
+          const handleCanPlay = () => {
+            console.log(
+              "Video can play, checking if we should start predictions"
+            );
+            if (shouldContinuePredictions && !video.paused && !video.ended) {
+              predictLoop();
+            }
+          };
+
+          const handlePause = () => {
+            console.log("Video paused, stopping predictions");
+            shouldContinuePredictions = false;
+            isLooping = false;
+            worker.postMessage({ type: "video-not-playing", reason: "paused" });
+          };
+
+          const handleEnded = () => {
+            console.log("Video ended, stopping predictions");
+            shouldContinuePredictions = false;
+            isLooping = false;
+            worker.postMessage({ type: "video-not-playing", reason: "ended" });
+          };
+
+          const handleSeeking = () => {
+            console.log("Video seeking");
+            isLooping = false;
+          };
+
+          const handleSeeked = () => {
+            console.log("Video seeked, resuming if playing");
+            if (shouldContinuePredictions && !video.paused && !video.ended) {
+              startPredictionsWhenReady();
+            }
+          };
+
+          video.addEventListener("play", handlePlay);
+          video.addEventListener("canplay", handleCanPlay);
+          video.addEventListener("pause", handlePause);
+          video.addEventListener("ended", handleEnded);
+          video.addEventListener("seeking", handleSeeking);
+          video.addEventListener("seeked", handleSeeked);
+
+          if (!video.paused && !video.ended && video.readyState >= 2) {
+            shouldContinuePredictions = true;
+            predictLoop();
+          }
+
+          return () => {
+            video.removeEventListener("play", handlePlay);
+            video.removeEventListener("canplay", handleCanPlay);
+            video.removeEventListener("pause", handlePause);
+            video.removeEventListener("ended", handleEnded);
+            video.removeEventListener("seeking", handleSeeking);
+            video.removeEventListener("seeked", handleSeeked);
+          };
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error(err);
       }
     }
 
-    main();
+    const cleanup = main();
 
     return () => {
+      shouldContinuePredictions = false;
       if (worker) worker.terminate();
+
+      if (cleanup && typeof cleanup.then === "function") {
+        cleanup.then((cleanupFn) => cleanupFn && cleanupFn());
+      }
+
       const tracks =
         // eslint-disable-next-line react-hooks/exhaustive-deps
         (videoRef.current?.srcObject as MediaStream)?.getTracks() || [];
@@ -118,8 +236,20 @@ export const Phone = () => {
         ></video>
 
         {finalDecision && (
-          <div className="w-[90%] absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 text-center">
-            <p className="mb-2">{finalDecision.title}</p>
+          <div
+            className={classNames(
+              "w-[90%] absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 text-center",
+              {
+                "bg-lime-600":
+                  finalDecision.reasonCode ===
+                  "package_visible_and_dropoff_location_visible_and_address_visible",
+                "bg-gray-600":
+                  finalDecision.reasonCode !==
+                  "package_visible_and_dropoff_location_visible_and_address_visible",
+              }
+            )}
+          >
+            <p className="mb-2 font-bold">{finalDecision.title}</p>
             <p>{finalDecision.description}</p>
           </div>
         )}

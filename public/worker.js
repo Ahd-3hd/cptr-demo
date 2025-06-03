@@ -139,6 +139,10 @@ onmessage = async (e) => {
         numThreads: -1,
       });
       postMessage({ type: "init-done" });
+    } else if (e.data.type === "video-not-playing") {
+      console.log(
+        `Video is not playing - reason: ${e.data.reason}. Skipping predictions.`
+      );
     } else if (e.data.type === "predict" && tfliteModel) {
       console.log(tf.getBackend());
       const { bitmap, width, height } = e.data;
