@@ -12,7 +12,10 @@ const MODEL_HEIGHT = 341;
 
 export const Phone = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [finalDecision, setFinalDecision] = useState(null);
+  const [finalDecision, setFinalDecision] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
 
   useEffect(() => {
     let worker: Worker;
@@ -30,9 +33,38 @@ export const Phone = () => {
 
     async function predictLoop() {
       if (!videoRef.current) return;
-      const bitmap = await createImageBitmap(videoRef.current);
+
+      const video = videoRef.current;
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      const videoAspectRatio = videoWidth / videoHeight;
+      const modelAspectRatio = MODEL_WIDTH / MODEL_HEIGHT;
+
+      let resizeWidth: number;
+      let resizeHeight: number;
+
+      if (videoAspectRatio > modelAspectRatio) {
+        resizeWidth = MODEL_WIDTH;
+        resizeHeight = Math.round(MODEL_WIDTH / videoAspectRatio);
+      } else {
+        resizeHeight = MODEL_HEIGHT;
+        resizeWidth = Math.round(MODEL_HEIGHT * videoAspectRatio);
+      }
+
+      const bitmap = await createImageBitmap(video, {
+        resizeWidth,
+        resizeHeight,
+        resizeQuality: "high",
+      });
+
       worker.postMessage(
-        { type: "predict", bitmap, width: MODEL_WIDTH, height: MODEL_HEIGHT },
+        {
+          type: "predict",
+          bitmap,
+          width: MODEL_WIDTH,
+          height: MODEL_HEIGHT,
+        },
         [bitmap]
       );
     }
@@ -45,7 +77,7 @@ export const Phone = () => {
           if (e.data.type === "prediction") {
             const decision = e.data.decision;
 
-            setFinalDecision(decision.description);
+            setFinalDecision(decision);
 
             predictLoop();
           }
@@ -85,9 +117,12 @@ export const Phone = () => {
           className="w-full h-full object-cover"
         ></video>
 
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10">
-          {finalDecision}
-        </div>
+        {finalDecision && (
+          <div className="w-[90%] absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 text-center">
+            <p className="mb-2">{finalDecision.title}</p>
+            <p>{finalDecision.description}</p>
+          </div>
+        )}
       </div>
     </div>
   );

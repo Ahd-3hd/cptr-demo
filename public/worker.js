@@ -27,11 +27,7 @@ const decisionArray = [
     description: "⚡ Increase the light",
     conditions: ["too_dark==true"],
     decisionValue: "insufficientInformation",
-    icon: "package/dark_image",
     orderNumber: 1,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f25",
-    },
   },
   {
     title: "None visible",
@@ -42,11 +38,7 @@ const decisionArray = [
       "unit_number_or_character_visible==false&&package_visible==false&&dropoff_location_visible==false",
     ],
     decisionValue: "insufficientInformation",
-    icon: "escooter/no_vehicle_in_image",
     orderNumber: 2,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f26",
-    },
   },
   {
     title: "Only package visible",
@@ -57,11 +49,7 @@ const decisionArray = [
       "package_visible==true&&dropoff_location_visible==false&&unit_number_or_character_visible==false",
     ],
     decisionValue: "insufficientInformation",
-    icon: "package/recipient_in_image",
     orderNumber: 3,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f27",
-    },
   },
   {
     title: "Only dropoff location visible",
@@ -72,11 +60,7 @@ const decisionArray = [
       "package_visible==false&&dropoff_location_visible==true&&unit_number_or_character_visible==false",
     ],
     decisionValue: "insufficientInformation",
-    icon: "package/no_package",
     orderNumber: 4,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f28",
-    },
   },
   {
     title: "Only address visible",
@@ -87,11 +71,7 @@ const decisionArray = [
       "package_visible==false&&dropoff_location_visible==false&&unit_number_or_character_visible==true",
     ],
     decisionValue: "insufficientInformation",
-    icon: "package/unit_number_mismatched",
     orderNumber: 5,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f29",
-    },
   },
   {
     title: "Only Package not visible",
@@ -102,11 +82,7 @@ const decisionArray = [
       "package_visible==false&&unit_number_or_character_visible==true&&dropoff_location_visible==true",
     ],
     decisionValue: "insufficientInformation",
-    icon: "package/safe_place",
     orderNumber: 6,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f2a",
-    },
   },
   {
     title: "Only dropoff location not visible",
@@ -117,11 +93,7 @@ const decisionArray = [
       "package_visible==true&&dropoff_location_visible==false&&unit_number_or_character_visible==true",
     ],
     decisionValue: "insufficientInformation",
-    icon: "package/unit_number_mismatched",
     orderNumber: 7,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f2b",
-    },
   },
   {
     title: "Only address not visible",
@@ -132,11 +104,7 @@ const decisionArray = [
       "package_visible==true&&dropoff_location_visible==true&&unit_number_or_character_visible==false",
     ],
     decisionValue: "insufficientInformation",
-    icon: "package/not_in_a_safe_place",
     orderNumber: 8,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f2c",
-    },
   },
   {
     title: "✅ All visible",
@@ -147,11 +115,7 @@ const decisionArray = [
       "package_visible==true&&dropoff_location_visible==true&&unit_number_or_character_visible==true",
     ],
     decisionValue: "insufficientInformation",
-    icon: "package/unit_number_matched",
     orderNumber: 9,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f2d",
-    },
   },
   {
     title: "No clear decision",
@@ -159,11 +123,7 @@ const decisionArray = [
     description: "Unable to assess the photo with positive delivery decision",
     conditions: ["decision_default"],
     decisionValue: "insufficientInformation",
-    icon: "package/poor_image_quality",
     orderNumber: 10,
-    _id: {
-      $oid: "67edbb178506b0d5b6415f2e",
-    },
   },
 ];
 
