@@ -144,7 +144,7 @@ onmessage = async (e) => {
         `Video is not playing - reason: ${e.data.reason}. Skipping predictions.`
       );
     } else if (e.data.type === "predict" && tfliteModel) {
-      console.log(tf.getBackend());
+      // console.log(tf.getBackend());
       const { bitmap, width, height } = e.data;
 
       const outputTensor = tf.tidy(() => {

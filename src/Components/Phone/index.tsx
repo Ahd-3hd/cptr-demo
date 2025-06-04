@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Suggestions } from "../Suggestions";
+import { Steps } from "../Steps";
+import { AppContext } from "../../Context/AppContext";
 
 export interface Prediction {
   name: string;
@@ -12,6 +14,8 @@ const MODEL_WIDTH = 256;
 const MODEL_HEIGHT = 341;
 
 export const Phone = () => {
+  const state = useContext(AppContext);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const [finalDecision, setFinalDecision] = useState<{
     title: string;
@@ -111,7 +115,7 @@ export const Phone = () => {
           paused: video.paused,
           ended: video.ended,
         });
-        setTimeout(startPredictionsWhenReady, 100);
+        setTimeout(startPredictionsWhenReady, 30);
       }
     }
 
@@ -127,7 +131,7 @@ export const Phone = () => {
             isLooping = false;
 
             if (shouldContinuePredictions) {
-              setTimeout(predictLoop, 100);
+              setTimeout(predictLoop, 30);
             }
           }
         };
@@ -224,7 +228,6 @@ export const Phone = () => {
       <div className="relative w-80 h-[600px] rounded-[2.5rem] bg-black shadow-xl overflow-hidden border-4 border-gray-900">
         <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-800 rounded-full"></div>
         <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gray-700 rounded-full"></div>
-
         <video
           ref={videoRef}
           src="/Delivery.mp4"
@@ -234,8 +237,16 @@ export const Phone = () => {
           loop={false}
           className="w-full h-full object-cover"
         ></video>
-
-        {finalDecision && <Suggestions finalDecision={finalDecision} />}
+        {finalDecision && (
+          <>
+            {state?.displayMode === "checklist" && (
+              <Steps finalDecision={finalDecision} />
+            )}
+            {state?.displayMode === "suggestion" && (
+              <Suggestions finalDecision={finalDecision} />
+            )}
+          </>
+        )}
       </div>
     </div>
   );
