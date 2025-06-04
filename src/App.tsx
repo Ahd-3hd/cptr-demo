@@ -9,7 +9,7 @@ const App = () => {
   return (
     <AppContext.Provider value={state}>
       <AppDispatchContext.Provider value={dispatch}>
-        <div className="flex flex-col justify-between p-8 h-screen items-center lg:flex-row">
+        <div className="flex flex-col justify-around p-8 h-screen items-center lg:flex-row">
           <Configuration />
           <Phone />
         </div>

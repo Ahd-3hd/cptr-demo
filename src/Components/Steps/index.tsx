@@ -93,7 +93,7 @@ export const Steps = ({ finalDecision }: Props) => {
             alt="package"
             className="h-5 w-5"
           />
-          <span className="text-xs font-bold">Package</span>
+          <span className="text-xs font-bold">Show package</span>
         </div>
         <div className="flex items-center space-x-2 text-white">
           <img
@@ -105,7 +105,7 @@ export const Steps = ({ finalDecision }: Props) => {
             alt="drop off location"
             className="h-5 w-5"
           />
-          <span className="text-xs font-bold">Drop-off</span>
+          <span className="text-xs font-bold">Show drop-off location</span>
         </div>
 
         <div className="flex items-center space-x-2 text-white">
@@ -118,7 +118,7 @@ export const Steps = ({ finalDecision }: Props) => {
             alt="address"
             className="h-5 w-5"
           />
-          <span className="text-xs font-bold">Address</span>
+          <span className="text-xs font-bold">Show address</span>
         </div>
         <div className="flex items-center space-x-2 text-white">
           <img
@@ -130,7 +130,7 @@ export const Steps = ({ finalDecision }: Props) => {
             alt="quality"
             className="h-5 w-5"
           />
-          <span className="text-xs font-bold">Quality</span>
+          <span className="text-xs font-bold">Photo quality</span>
         </div>
       </div>
     </div>
