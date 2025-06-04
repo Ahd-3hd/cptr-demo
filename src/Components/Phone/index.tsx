@@ -298,6 +298,15 @@ export const Phone = () => {
           className="w-full h-full object-cover"
         />
 
+        {state?.scanMode === "manual" && (
+          <button
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-4 border-gray-300 shadow-lg hover:bg-gray-100 active:scale-95 transition-all duration-150 flex items-center justify-center"
+            onClick={() => {
+              console.log("Shutter clicked");
+            }}
+          />
+        )}
+
         {!isConfirmed && <ConfirmationScreen onConfirm={handleConfirm} />}
 
         {finalDecision && isConfirmed && (

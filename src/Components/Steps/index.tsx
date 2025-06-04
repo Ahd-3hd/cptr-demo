@@ -81,7 +81,7 @@ export const Steps = ({ finalDecision }: Props) => {
   };
 
   return (
-    <div className="absolute bottom-20 left-1/2 w-[90%] -translate-x-1/2 transform rounded-xl bg-[#7D7D7D66] p-4 shadow-md">
+    <div className="absolute bottom-30 left-1/2 w-[90%] -translate-x-1/2 transform rounded-xl bg-[#7D7D7D66] p-4 shadow-md">
       <div className="grid grid-cols-2 gap-4">
         <div className="flex items-center space-x-2 text-white">
           <img

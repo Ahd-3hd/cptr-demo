@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useContext } from "react";
+import { AppContext, AppDispatchContext } from "../../Context/AppContext";
 
 export const ScanMode = () => {
-  const [endScanMode, setEndScanMode] = useState("auto");
+  const state = useContext(AppContext);
+  const dispatch = useContext(AppDispatchContext);
 
   return (
     <div className="text-white max-w-xl mx-auto">
@@ -17,8 +19,13 @@ export const ScanMode = () => {
               type="radio"
               name="endScanMode"
               value="auto"
-              checked={endScanMode === "auto"}
-              onChange={() => setEndScanMode("auto")}
+              checked={state?.scanMode === "automatic"}
+              onChange={() => {
+                dispatch?.({
+                  type: "scanMode",
+                  value: "automatic",
+                });
+              }}
             />
             <div>
               <span className="font-semibold">Automatically</span>
@@ -33,8 +40,13 @@ export const ScanMode = () => {
               type="radio"
               name="endScanMode"
               value="manual"
-              checked={endScanMode === "manual"}
-              onChange={() => setEndScanMode("manual")}
+              checked={state?.scanMode === "manual"}
+              onChange={() =>
+                dispatch?.({
+                  type: "scanMode",
+                  value: "manual",
+                })
+              }
             />
             <div>
               <span className="font-semibold">Manually</span>

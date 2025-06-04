@@ -12,7 +12,7 @@ export const Suggestions = ({ finalDecision }: Props) => {
   return (
     <div
       className={classNames(
-        "w-[90%] absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 text-center shadow-md",
+        "w-[90%] absolute bottom-30 left-1/2 transform -translate-x-1/2 bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 text-center shadow-md",
         {
           "bg-[#0E9B32D9]":
             finalDecision.reasonCode ===
