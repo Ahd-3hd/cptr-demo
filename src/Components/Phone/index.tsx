@@ -1,5 +1,5 @@
-import classNames from "classnames";
 import { useEffect, useRef, useState } from "react";
+import { Suggestions } from "../Suggestions";
 
 export interface Prediction {
   name: string;
@@ -235,24 +235,7 @@ export const Phone = () => {
           className="w-full h-full object-cover"
         ></video>
 
-        {finalDecision && (
-          <div
-            className={classNames(
-              "w-[90%] absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 text-center",
-              {
-                "bg-lime-600":
-                  finalDecision.reasonCode ===
-                  "package_visible_and_dropoff_location_visible_and_address_visible",
-                "bg-gray-600":
-                  finalDecision.reasonCode !==
-                  "package_visible_and_dropoff_location_visible_and_address_visible",
-              }
-            )}
-          >
-            <p className="mb-2 font-bold">{finalDecision.title}</p>
-            <p>{finalDecision.description}</p>
-          </div>
-        )}
+        {finalDecision && <Suggestions finalDecision={finalDecision} />}
       </div>
     </div>
   );
