@@ -15,7 +15,6 @@ const StatusBar = () => {
       </div>
 
       <div className="flex items-center space-x-1">
-        {/* WiFi icon */}
         <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
           <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.07 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
         </svg>
@@ -27,6 +26,29 @@ const StatusBar = () => {
           <div className="absolute -right-0.5 top-1 w-0.5 h-1 bg-white rounded-r-sm"></div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const ConfirmationScreen = ({ onConfirm }: { onConfirm: () => void }) => {
+  return (
+    <div className="absolute inset-0 z-20 bg-black flex flex-col items-center justify-between px-8 py-6">
+      <div />
+      <div className="text-center mb-8">
+        <h2 className="text-white text-xl font-semibold mb-2">
+          Confirm configuration
+        </h2>
+        <p className="text-gray-300 text-sm">
+          Review delivery validation configuration
+        </p>
+      </div>
+
+      <button
+        onClick={onConfirm}
+        className="bg-blue-600 hover:bg-blue-700 transition-colors text-white font-medium py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
+      >
+        Confirm and Preview
+      </button>
     </div>
   );
 };
@@ -51,7 +73,18 @@ export const Phone = () => {
     reasonCode: string;
   } | null>(null);
 
+  const [isConfirmed, setIsConfirmed] = useState(false);
+
+  const handleConfirm = () => {
+    setIsConfirmed(true);
+    if (videoRef.current) {
+      videoRef.current.play();
+    }
+  };
+
   useEffect(() => {
+    if (!isConfirmed) return;
+
     let worker: Worker;
     let isLooping = false;
     let shouldContinuePredictions = false;
@@ -249,11 +282,11 @@ export const Phone = () => {
         (videoRef.current?.srcObject as MediaStream)?.getTracks() || [];
       tracks.forEach((t) => t.stop());
     };
-  }, []);
+  }, [isConfirmed]);
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <div className="relative w-90 h-[700px] rounded-[2.5rem] bg-black shadow-xl overflow-hidden border-4 border-gray-900">
+      <div className="relative w-80 h-[600px] rounded-[2.5rem] bg-black shadow-xl overflow-hidden border-4 border-gray-900">
         <StatusBar />
         <video
           ref={videoRef}
@@ -263,8 +296,11 @@ export const Phone = () => {
           muted
           loop={false}
           className="w-full h-full object-cover"
-        ></video>
-        {finalDecision && (
+        />
+
+        {!isConfirmed && <ConfirmationScreen onConfirm={handleConfirm} />}
+
+        {finalDecision && isConfirmed && (
           <>
             {state?.displayMode === "checklist" && (
               <Steps finalDecision={finalDecision} />
