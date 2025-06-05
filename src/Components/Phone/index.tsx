@@ -108,6 +108,47 @@ export const Phone = () => {
     }
   };
 
+  const handleManualCapture = async () => {
+    if (!videoRef.current || !finalDecision) {
+      console.log("No video or final decision available for manual capture");
+      return;
+    }
+
+    const video = videoRef.current;
+
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        console.error("Could not get canvas context");
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      video.pause();
+
+      setCapturedResult({
+        decision: finalDecision,
+        image: {
+          data: imageData.data,
+          width: imageData.width,
+          height: imageData.height,
+        },
+      });
+
+      console.log("Manual capture completed");
+    } catch (error) {
+      console.error("Error during manual capture:", error);
+    }
+  };
+
   useEffect(() => {
     if (!isConfirmed || capturedResult) return;
 
@@ -218,7 +259,10 @@ export const Phone = () => {
 
             setFinalDecision(decision);
 
-            if (CAPTURE_REASON_CODES.includes(reasonCode)) {
+            if (
+              state?.scanMode === "automatic" &&
+              CAPTURE_REASON_CODES.includes(reasonCode)
+            ) {
               console.log("Capturing result for reasonCode:", reasonCode);
 
               shouldContinuePredictions = false;
@@ -332,7 +376,7 @@ export const Phone = () => {
         (videoRef.current?.srcObject as MediaStream)?.getTracks() || [];
       tracks.forEach((t) => t.stop());
     };
-  }, [isConfirmed, capturedResult, CAPTURE_REASON_CODES]);
+  }, [isConfirmed, capturedResult, CAPTURE_REASON_CODES, state?.scanMode]);
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -358,9 +402,7 @@ export const Phone = () => {
             {state?.scanMode === "manual" && (
               <button
                 className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-4 border-gray-300 shadow-lg hover:bg-gray-100 active:scale-95 transition-all duration-150 flex items-center justify-center"
-                onClick={() => {
-                  console.log("Shutter clicked");
-                }}
+                onClick={handleManualCapture}
               />
             )}
 
