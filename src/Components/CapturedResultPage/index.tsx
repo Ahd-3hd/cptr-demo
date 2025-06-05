@@ -64,16 +64,40 @@ export const CapturedResultPage = ({
 
       <div className="w-full relative flex flex-col items-center">
         <div className="w-full">
-          <h1 className="text-sm font-bold">🎉 Great job delivering!</h1>
+          {result.decision.reasonCode ===
+            "package_visible_and_dropoff_location_visible_and_address_visible" && (
+            <h1 className="text-sm font-bold">🎉 Great job delivering!</h1>
+          )}
+
+          {result.decision.reasonCode !==
+            "package_visible_and_dropoff_location_visible_and_address_visible" && (
+            <p className="text-xs font-bold mb-2">
+              ❗{result.decision.description}
+            </p>
+          )}
+          {result.decision.reasonCode !==
+            "package_visible_and_dropoff_location_visible_and_address_visible" && (
+            <p className="text-[10px]">
+              Invalid proof of delivery photo may result in a lost package
+              claim. Are you sure you want to submit this photo?
+            </p>
+          )}
         </div>
         <canvas
           ref={canvasRef}
-          className="w-[60%] object-contain rounded my-4"
+          className="w-[40%] object-contain rounded my-4"
         />
       </div>
 
       <button
-        onClick={() => {}}
+        onClick={onBack}
+        className="text-sm transition-colors text-black font-medium py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
+      >
+        Retake Photo
+      </button>
+
+      <button
+        onClick={onBack}
         className="bg-black text-sm transition-colors text-white font-medium py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
       >
         Complete delivery
