@@ -147,6 +147,16 @@ onmessage = async (e) => {
       // console.log(tf.getBackend());
       const { bitmap, width, height } = e.data;
 
+      const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bitmap, 0, 0);
+      const originalImageData = ctx.getImageData(
+        0,
+        0,
+        bitmap.width,
+        bitmap.height
+      );
+
       const outputTensor = tf.tidy(() => {
         const img = tf.browser.fromPixels(bitmap);
         const input = tf.image.resizeBilinear(img, [height, width]);
@@ -176,6 +186,11 @@ onmessage = async (e) => {
       postMessage({
         type: "prediction",
         decision,
+        originalImage: {
+          data: originalImageData.data,
+          width: originalImageData.width,
+          height: originalImageData.height,
+        },
       });
     }
   } catch (error) {

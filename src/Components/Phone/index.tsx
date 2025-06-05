@@ -187,6 +187,8 @@ export const Phone = () => {
         worker.onmessage = (e) => {
           if (e.data.type === "prediction") {
             const decision = e.data.decision;
+            const image = e.data.originalImage;
+            console.log(image);
             setFinalDecision(decision);
 
             isLooping = false;
