@@ -85,10 +85,57 @@ export const Phone = () => {
     };
   } | null>(null);
 
+  const [videoSource, setVideoSource] = useState("/Delivery.mp4");
+  const [isDragOver, setIsDragOver] = useState(false);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const CAPTURE_REASON_CODES = [
     "package_visible_and_dropoff_location_visible_and_address_visible",
   ];
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const videoFile = files.find((file) => file.type === "video/mp4");
+
+    if (videoFile) {
+      if (videoSource.startsWith("blob:")) {
+        URL.revokeObjectURL(videoSource);
+      }
+
+      const objectURL = URL.createObjectURL(videoFile);
+      setVideoSource(objectURL);
+
+      setIsConfirmed(false);
+      setCapturedResult(null);
+      setFinalDecision(null);
+
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0;
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (videoSource.startsWith("blob:")) {
+        URL.revokeObjectURL(videoSource);
+      }
+    };
+  }, [videoSource]);
 
   const handleConfirm = () => {
     setIsConfirmed(true);
@@ -380,8 +427,25 @@ export const Phone = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <div className="relative w-80 h-[600px] rounded-[2.5rem] bg-black shadow-xl overflow-hidden border-4 border-gray-900">
+      <div
+        className={`relative w-80 h-[600px] rounded-[2.5rem] bg-black shadow-xl overflow-hidden border-4 ${
+          isDragOver ? "border-blue-400 bg-blue-50" : "border-gray-900"
+        } transition-colors duration-200`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <StatusBar />
+
+        {isDragOver && (
+          <div className="absolute inset-0 z-30 bg-blue-500 bg-opacity-20 flex items-center justify-center">
+            <div className="text-white text-center">
+              <div className="text-2xl mb-2">📁</div>
+              <div className="text-sm font-medium">Drop MP4 video here</div>
+            </div>
+          </div>
+        )}
+
         {capturedResult ? (
           <CapturedResultPage
             result={capturedResult}
@@ -391,7 +455,7 @@ export const Phone = () => {
           <>
             <video
               ref={videoRef}
-              src="/Delivery.mp4"
+              src={videoSource}
               autoPlay={false}
               controls={false}
               muted
