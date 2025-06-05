@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { Suggestions } from "../Suggestions";
 import { Steps } from "../Steps";
 import { AppContext } from "../../Context/AppContext";
+import { CapturedResultPage } from "../CapturedResultPage";
 
 const StatusBar = () => {
   return (
@@ -45,7 +46,7 @@ const ConfirmationScreen = ({ onConfirm }: { onConfirm: () => void }) => {
 
       <button
         onClick={onConfirm}
-        className="bg-blue-600 hover:bg-blue-700 transition-colors text-white font-medium py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
+        className="bg-blue-600 hover:bg-blue-700 text-sm transition-colors text-white font-medium py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
       >
         Confirm and Preview
       </button>
@@ -74,6 +75,20 @@ export const Phone = () => {
   } | null>(null);
 
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [capturedResult, setCapturedResult] = useState<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    decision: any;
+    image: {
+      data: Uint8ClampedArray;
+      width: number;
+      height: number;
+    };
+  } | null>(null);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const CAPTURE_REASON_CODES = [
+    "package_visible_and_dropoff_location_visible_and_address_visible",
+  ];
 
   const handleConfirm = () => {
     setIsConfirmed(true);
@@ -82,8 +97,19 @@ export const Phone = () => {
     }
   };
 
+  const handleBackToVideo = async () => {
+    setCapturedResult(null);
+    setFinalDecision(null);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log(videoRef);
+    if (videoRef.current) {
+      videoRef.current.play();
+    }
+  };
+
   useEffect(() => {
-    if (!isConfirmed) return;
+    if (!isConfirmed || capturedResult) return;
 
     let worker: Worker;
     let isLooping = false;
@@ -188,8 +214,31 @@ export const Phone = () => {
           if (e.data.type === "prediction") {
             const decision = e.data.decision;
             const image = e.data.originalImage;
-            console.log(image);
+            const reasonCode = decision.reasonCode;
+
             setFinalDecision(decision);
+
+            if (CAPTURE_REASON_CODES.includes(reasonCode)) {
+              console.log("Capturing result for reasonCode:", reasonCode);
+
+              shouldContinuePredictions = false;
+              isLooping = false;
+
+              if (videoRef.current) {
+                videoRef.current.pause();
+              }
+
+              setCapturedResult({
+                decision,
+                image: {
+                  data: new Uint8ClampedArray(image.data),
+                  width: image.width,
+                  height: image.height,
+                },
+              });
+
+              return;
+            }
 
             isLooping = false;
 
@@ -262,7 +311,6 @@ export const Phone = () => {
             video.removeEventListener("seeked", handleSeeked);
           };
         }
-
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error(err);
@@ -284,40 +332,49 @@ export const Phone = () => {
         (videoRef.current?.srcObject as MediaStream)?.getTracks() || [];
       tracks.forEach((t) => t.stop());
     };
-  }, [isConfirmed]);
+  }, [isConfirmed, capturedResult, CAPTURE_REASON_CODES]);
 
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="relative w-80 h-[600px] rounded-[2.5rem] bg-black shadow-xl overflow-hidden border-4 border-gray-900">
         <StatusBar />
-        <video
-          ref={videoRef}
-          src="/Delivery.mp4"
-          autoPlay={false}
-          controls={false}
-          muted
-          loop={false}
-          className="w-full h-full object-cover"
-        />
-
-        {state?.scanMode === "manual" && (
-          <button
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-4 border-gray-300 shadow-lg hover:bg-gray-100 active:scale-95 transition-all duration-150 flex items-center justify-center"
-            onClick={() => {
-              console.log("Shutter clicked");
-            }}
+        {capturedResult ? (
+          <CapturedResultPage
+            result={capturedResult}
+            onBack={handleBackToVideo}
           />
-        )}
-
-        {!isConfirmed && <ConfirmationScreen onConfirm={handleConfirm} />}
-
-        {finalDecision && isConfirmed && (
+        ) : (
           <>
-            {state?.displayMode === "checklist" && (
-              <Steps finalDecision={finalDecision} />
+            <video
+              ref={videoRef}
+              src="/Delivery.mp4"
+              autoPlay={false}
+              controls={false}
+              muted
+              loop={false}
+              className="w-full h-full object-cover"
+            />
+
+            {state?.scanMode === "manual" && (
+              <button
+                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-4 border-gray-300 shadow-lg hover:bg-gray-100 active:scale-95 transition-all duration-150 flex items-center justify-center"
+                onClick={() => {
+                  console.log("Shutter clicked");
+                }}
+              />
             )}
-            {state?.displayMode === "suggestion" && (
-              <Suggestions finalDecision={finalDecision} />
+
+            {!isConfirmed && <ConfirmationScreen onConfirm={handleConfirm} />}
+
+            {finalDecision && isConfirmed && !capturedResult && (
+              <>
+                {state?.displayMode === "checklist" && (
+                  <Steps finalDecision={finalDecision} />
+                )}
+                {state?.displayMode === "suggestion" && (
+                  <Suggestions finalDecision={finalDecision} />
+                )}
+              </>
             )}
           </>
         )}
