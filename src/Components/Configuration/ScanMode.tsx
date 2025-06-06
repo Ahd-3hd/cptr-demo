@@ -10,8 +10,7 @@ export const ScanMode = () => {
       <section>
         <h2 className="text-xl font-bold mb-2">End scan</h2>
         <p className="mb-4">
-          Would you like to end the scan automatically by the model or manually
-          by user?
+          Would you like the scan to end automatically or manually?
         </p>
         <div className="space-y-3 flex">
           <label className="flex items-start space-x-3 cursor-pointer m-0">

@@ -8,9 +8,9 @@ export const DisplayMode = () => {
   return (
     <div className="text-white max-w-xl mx-auto">
       <section>
-        <h2 className="text-xl font-bold mb-2">Feedback display mode</h2>
+        <h2 className="text-xl font-bold mb-2">Feedback mode</h2>
         <p className="mb-4">
-          How would you like the SDK feedback to be presented to user?
+          How would you like to display feedback to the user?
         </p>
         <div className="space-y-3 flex">
           <label className="flex items-start space-x-3 cursor-pointer m-0">
@@ -27,7 +27,7 @@ export const DisplayMode = () => {
               }}
             />
             <div>
-              <span className="font-semibold">Checklist Mode</span>
+              <span className="font-semibold">Icons</span>
               <p className="text-sm text-gray-300">
                 Guide users to pass all checks step-by-step
               </p>
@@ -47,7 +47,7 @@ export const DisplayMode = () => {
               }}
             />
             <div>
-              <span className="font-semibold">Suggestion Mode</span>
+              <span className="font-semibold">Detailed text</span>
               <p className="text-sm text-gray-300">
                 Directly suggest desired user behavior changes
               </p>
