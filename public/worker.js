@@ -6,8 +6,10 @@ importScripts(
 );
 
 let tfliteModel = null;
+let isDefaultModel = true;
+let currentClasses = [];
 
-const CLASSES = [
+const DEFAULT_CLASSES = [
   "unit_number_or_character_visible",
   "package_visible",
   "dropoff_location_visible",
@@ -135,6 +137,10 @@ onmessage = async (e) => {
       );
       await tf.setBackend("wasm");
       await tf.ready();
+
+      isDefaultModel = e.data.isDefaultModel || false;
+      currentClasses = e.data.classes || DEFAULT_CLASSES;
+
       tfliteModel = await tflite.loadTFLiteModel(e.data.modelPath, {
         numThreads: -1,
       });
@@ -144,7 +150,6 @@ onmessage = async (e) => {
         `Video is not playing - reason: ${e.data.reason}. Skipping predictions.`
       );
     } else if (e.data.type === "predict" && tfliteModel) {
-      // console.log(tf.getBackend());
       const { bitmap, width, height } = e.data;
 
       const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
@@ -166,26 +171,37 @@ onmessage = async (e) => {
       });
 
       const scores = await tf.squeeze(outputTensor).array();
-      const predictionSummary = getPredictionSummary(
-        scores
-          .map((c, i) => ({
-            name: CLASSES[i],
-            confidence: c,
-          }))
-          .sort((a, b) => b.confidence - a.confidence)
-      );
+      const predictions = scores
+        .map((c, i) => ({
+          name: currentClasses[i],
+          confidence: c,
+        }))
+        .sort((a, b) => b.confidence - a.confidence);
 
-      const decision = getDecision({
-        predictionSummary,
-        decisionArray,
-      });
+      let result;
+      if (isDefaultModel) {
+        const predictionSummary = getPredictionSummary(predictions);
+        console.log(predictionSummary);
+        result = getDecision({
+          predictionSummary,
+          decisionArray,
+        });
+      } else {
+        result = {
+          title: "Custom Model Predictions",
+          reasonCode: "custom_model_prediction",
+          description: "Custom model classification results",
+          predictions: predictions,
+          isCustomModel: true,
+        };
+      }
 
       outputTensor.dispose();
       bitmap.close();
 
       postMessage({
         type: "prediction",
-        decision,
+        decision: result,
         originalImage: {
           data: originalImageData.data,
           width: originalImageData.width,

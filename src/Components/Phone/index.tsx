@@ -5,6 +5,7 @@ import { AppContext } from "../../Context/AppContext";
 import { CapturedResultPage } from "../CapturedResultPage";
 import { StatusBar } from "./StatusBar";
 import { ConfirmationScreen } from "./ConfirmationScreen";
+import { CustomModelDisplay } from "../CustomModelDisplay";
 
 export interface Prediction {
   name: string;
@@ -23,6 +24,11 @@ export const Phone = () => {
     title: string;
     description: string;
     reasonCode: string;
+    predictions?: Array<{
+      name: string;
+      confidence: number;
+    }>;
+    isCustomModel?: boolean;
   } | null>(null);
 
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -164,7 +170,16 @@ export const Phone = () => {
             if (e.data.type === "init-done") resolve();
             if (e.data.type === "error") reject(new Error(e.data.error));
           };
-          worker.postMessage({ type: "init", modelPath: modelInfo.url });
+
+          console.log(modelInfo.url);
+          const isDefaultModel = modelInfo.url === "/default.tflite";
+
+          worker.postMessage({
+            type: "init",
+            modelPath: modelInfo.url,
+            isDefaultModel: isDefaultModel,
+            classes: modelInfo.classes, // This should be undefined for default model
+          });
         });
         return true;
       } catch (error) {
@@ -273,6 +288,7 @@ export const Phone = () => {
 
             if (
               state?.scanMode === "automatic" &&
+              !decision.isCustomModel &&
               CAPTURE_REASON_CODES.includes(reasonCode)
             ) {
               console.log("Capturing result for reasonCode:", reasonCode);
@@ -396,6 +412,7 @@ export const Phone = () => {
       }
 
       const tracks =
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         (videoRef.current?.srcObject as MediaStream)?.getTracks() || [];
       tracks.forEach((t) => t.stop());
     };
@@ -472,11 +489,17 @@ export const Phone = () => {
 
             {finalDecision && isConfirmed && !capturedResult && (
               <>
-                {state?.displayMode === "checklist" && (
-                  <Steps finalDecision={finalDecision} />
-                )}
-                {state?.displayMode === "suggestion" && (
-                  <Suggestions finalDecision={finalDecision} />
+                {finalDecision.isCustomModel ? (
+                  <CustomModelDisplay finalDecision={finalDecision} />
+                ) : (
+                  <>
+                    {state?.displayMode === "checklist" && (
+                      <Steps finalDecision={finalDecision} />
+                    )}
+                    {state?.displayMode === "suggestion" && (
+                      <Suggestions finalDecision={finalDecision} />
+                    )}
+                  </>
                 )}
               </>
             )}

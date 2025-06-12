@@ -79,6 +79,7 @@ export interface ModelInfo {
   width: number;
   height: number;
   isDefault: boolean;
+  classes?: string[];
 }
 
 export interface State {
@@ -88,7 +89,7 @@ export interface State {
 }
 
 const defaultModel: ModelInfo = {
-  url: "/production_package_small_delivery_0_1_0_image_artifacts_1_0_4_image_quality_package_delivery_1_0_0.tflite",
+  url: "/default.tflite",
   name: "Default Package Delivery Model",
   width: 256,
   height: 341,
