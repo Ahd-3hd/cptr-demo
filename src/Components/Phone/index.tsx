@@ -11,13 +11,12 @@ export interface Prediction {
   confidence: number;
 }
 
-const MODEL_PATH =
-  "/production_package_small_delivery_0_1_0_image_artifacts_1_0_4_image_quality_package_delivery_1_0_0.tflite";
-const MODEL_WIDTH = 256;
-const MODEL_HEIGHT = 341;
-
 export const Phone = () => {
   const state = useContext(AppContext);
+
+  const modelInfo = state?.model;
+  const MODEL_WIDTH = modelInfo?.width || 256;
+  const MODEL_HEIGHT = modelInfo?.height || 341;
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [finalDecision, setFinalDecision] = useState<{
@@ -149,25 +148,34 @@ export const Phone = () => {
   };
 
   useEffect(() => {
-    if (!isConfirmed || capturedResult) return;
+    if (!isConfirmed || capturedResult || !modelInfo) return;
 
     let worker: Worker;
     let isLooping = false;
     let shouldContinuePredictions = false;
 
-    async function initWorker() {
-      worker = new Worker("/worker.js", { type: "classic" });
-      await new Promise<void>((resolve, reject) => {
-        worker.onmessage = (e) => {
-          if (e.data.type === "init-done") resolve();
-          if (e.data.type === "error") reject(new Error(e.data.error));
-        };
-        worker.postMessage({ type: "init", modelPath: MODEL_PATH });
-      });
+    async function initWorker(): Promise<boolean> {
+      if (!modelInfo) return false;
+
+      try {
+        worker = new Worker("/worker.js", { type: "classic" });
+        await new Promise<void>((resolve, reject) => {
+          worker.onmessage = (e) => {
+            if (e.data.type === "init-done") resolve();
+            if (e.data.type === "error") reject(new Error(e.data.error));
+          };
+          worker.postMessage({ type: "init", modelPath: modelInfo.url });
+        });
+        return true;
+      } catch (error) {
+        console.error("Failed to initialize worker:", error);
+        if (worker) worker.terminate();
+        return false;
+      }
     }
 
     async function predictLoop() {
-      if (!videoRef.current || isLooping) return;
+      if (!videoRef.current || isLooping || !worker) return;
 
       const video = videoRef.current;
 
@@ -229,7 +237,7 @@ export const Phone = () => {
 
     function startPredictionsWhenReady() {
       const video = videoRef.current;
-      if (!video) return;
+      if (!video || !worker) return;
 
       if (video.readyState >= 2 && !video.paused && !video.ended) {
         console.log("Video is ready and playing, starting predictions");
@@ -248,7 +256,12 @@ export const Phone = () => {
 
     async function main() {
       try {
-        await initWorker();
+        const workerInitialized = await initWorker();
+
+        if (!workerInitialized || !worker) {
+          console.error("Worker initialization failed");
+          return;
+        }
 
         worker.onmessage = (e) => {
           if (e.data.type === "prediction") {
@@ -311,14 +324,24 @@ export const Phone = () => {
             console.log("Video paused, stopping predictions");
             shouldContinuePredictions = false;
             isLooping = false;
-            worker.postMessage({ type: "video-not-playing", reason: "paused" });
+            if (worker) {
+              worker.postMessage({
+                type: "video-not-playing",
+                reason: "paused",
+              });
+            }
           };
 
           const handleEnded = () => {
             console.log("Video ended, stopping predictions");
             shouldContinuePredictions = false;
             isLooping = false;
-            worker.postMessage({ type: "video-not-playing", reason: "ended" });
+            if (worker) {
+              worker.postMessage({
+                type: "video-not-playing",
+                reason: "ended",
+              });
+            }
           };
 
           const handleSeeking = () => {
@@ -356,7 +379,7 @@ export const Phone = () => {
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
-        console.error(err);
+        console.error("Error in main function:", err);
       }
     }
 
@@ -364,18 +387,41 @@ export const Phone = () => {
 
     return () => {
       shouldContinuePredictions = false;
-      if (worker) worker.terminate();
+      if (worker) {
+        worker.terminate();
+      }
 
       if (cleanup && typeof cleanup.then === "function") {
         cleanup.then((cleanupFn) => cleanupFn && cleanupFn());
       }
 
       const tracks =
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         (videoRef.current?.srcObject as MediaStream)?.getTracks() || [];
       tracks.forEach((t) => t.stop());
     };
-  }, [isConfirmed, capturedResult, CAPTURE_REASON_CODES, state?.scanMode]);
+  }, [
+    isConfirmed,
+    capturedResult,
+    CAPTURE_REASON_CODES,
+    state?.scanMode,
+    modelInfo,
+    MODEL_WIDTH,
+    MODEL_HEIGHT,
+  ]);
+
+  if (!modelInfo) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="relative w-80 h-[600px] rounded-[2.5rem] bg-gray-100 shadow-xl overflow-hidden border-4 border-gray-300 flex items-center justify-center">
+          <div className="text-center text-gray-600">
+            <div className="text-4xl mb-4">📱</div>
+            <div className="text-lg font-medium mb-2">No Model Loaded</div>
+            <div className="text-sm">Upload a .tflite model to get started</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen">

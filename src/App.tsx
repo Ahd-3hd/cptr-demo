@@ -31,19 +31,74 @@ function appReducer(state: State, action: { type: string; value: any }): State {
         ...state,
         scanMode: action.value,
       };
+    case "setModel":
+      if (state.model?.url && state.model.url.startsWith("blob:")) {
+        URL.revokeObjectURL(state.model.url);
+      }
+      return {
+        ...state,
+        model: action.value,
+      };
+    case "updateModelDimensions":
+      return {
+        ...state,
+        model: state.model
+          ? {
+              ...state.model,
+              width: action.value.width,
+              height: action.value.height,
+            }
+          : null,
+      };
+    case "clearModel":
+      if (state.model?.url && state.model.url.startsWith("blob:")) {
+        URL.revokeObjectURL(state.model.url);
+      }
+      return {
+        ...state,
+        model: null,
+      };
+    case "resetToDefault":
+      if (state.model?.url && state.model.url.startsWith("blob:")) {
+        URL.revokeObjectURL(state.model.url);
+      }
+      return {
+        ...state,
+        model: defaultModel,
+      };
     default: {
       throw Error("Unknown action: " + action.type);
     }
   }
 }
 
+export interface ModelInfo {
+  file?: File;
+  url: string;
+  name: string;
+  width: number;
+  height: number;
+  isDefault: boolean;
+}
+
 export interface State {
   displayMode: "checklist" | "suggestion";
   scanMode: "automatic" | "manual";
+  model: ModelInfo | null;
 }
+
+const defaultModel: ModelInfo = {
+  url: "/production_package_small_delivery_0_1_0_image_artifacts_1_0_4_image_quality_package_delivery_1_0_0.tflite",
+  name: "Default Package Delivery Model",
+  width: 256,
+  height: 341,
+  isDefault: true,
+};
+
 const initialState: State = {
   displayMode: "checklist",
   scanMode: "automatic",
+  model: defaultModel,
 };
 
 export default App;
