@@ -12,49 +12,50 @@ export const ScanMode = () => {
         <p className="mb-4">
           Would you like the scan to end automatically or manually?
         </p>
-        <div className="space-y-3 flex">
-          <label className="flex items-start space-x-3 cursor-pointer m-0">
-            <input
-              type="radio"
-              name="endScanMode"
-              value="auto"
-              checked={state?.scanMode === "automatic"}
-              onChange={() => {
-                dispatch?.({
-                  type: "scanMode",
-                  value: "automatic",
-                });
-              }}
-            />
-            <div>
-              <span className="font-semibold">Automatically</span>
-              <p className="text-sm text-gray-300">
-                Automatically take valid photo (best practice for time sensitive
-                cases)
-              </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
+              state?.scanMode === "automatic"
+                ? "border-[#4930e2] bg-[#4930e2]/10"
+                : "border-gray-600 bg-gray-800/50 hover:border-gray-500"
+            }`}
+            onClick={() => {
+              dispatch?.({
+                type: "scanMode",
+                value: "automatic",
+              });
+            }}
+          >
+            <div className="flex items-center mb-2 text-left">
+              <span className="font-semibold text-lg">Automatically</span>
             </div>
-          </label>
-          <label className="flex items-start space-x-3 cursor-pointer m-0">
-            <input
-              type="radio"
-              name="endScanMode"
-              value="manual"
-              checked={state?.scanMode === "manual"}
-              onChange={() =>
-                dispatch?.({
-                  type: "scanMode",
-                  value: "manual",
-                })
-              }
-            />
-            <div>
-              <span className="font-semibold">Manually</span>
-              <p className="text-sm text-gray-300">
-                User decide when to take photo (best practice for better image
-                quality)
-              </p>
+            <p className="text-sm text-gray-300 text-left">
+              Automatically take valid photo (best practice for time sensitive
+              cases)
+            </p>
+          </div>
+          
+          <div
+            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
+              state?.scanMode === "manual"
+                ? "border-[#4930e2] bg-[#4930e2]/10"
+                : "border-gray-600 bg-gray-800/50 hover:border-gray-500"
+            }`}
+            onClick={() => {
+              dispatch?.({
+                type: "scanMode",
+                value: "manual",
+              });
+            }}
+          >
+            <div className="flex items-center mb-2 text-left">
+              <span className="font-semibold text-lg">Manually</span>
             </div>
-          </label>
+            <p className="text-sm text-gray-300 text-left">
+              User decide when to take photo (best practice for better image
+              quality)
+            </p>
+          </div>
         </div>
       </section>
     </div>

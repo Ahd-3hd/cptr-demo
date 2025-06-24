@@ -4,51 +4,43 @@ import { Steps } from "../Steps";
 import { AppContext } from "../../Context/AppContext";
 import { CapturedResultPage } from "../CapturedResultPage";
 
-const StatusBar = () => {
+const StatusBar = ({ theme = "light" }: { theme?: "light" | "dark" }) => {
+  const statusBarImage =
+    theme === "light" ? "/StatusBar-black.png" : "/StatusBar-white.png";
+
   return (
-    <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center px-6 py-2 text-white text-sm font-medium bg-transparent">
-      <div className="flex items-center">
-        <span>14:17</span>
-      </div>
-
-      <div className="flex items-center bg-black px-1 h-5 w-[30%] rounded-full justify-between">
-        <div className="w-3 h-3 bg-red-500/80 rounded-full mr-1"></div>
-      </div>
-
-      <div className="flex items-center space-x-1">
-        <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
-          <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.07 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
-        </svg>
-
-        <div className="relative">
-          <div className="w-6 h-3 border border-white rounded-sm">
-            <div className="w-4 h-1.5 bg-white rounded-sm m-0.5"></div>
-          </div>
-          <div className="absolute -right-0.5 top-1 w-0.5 h-1 bg-white rounded-r-sm"></div>
-        </div>
-      </div>
+    <div className="absolute top-0 left-0 right-0 z-10">
+      <img
+        src={statusBarImage}
+        alt="Status bar"
+        className="w-full h-auto select-none pointer-events-none"
+      />
     </div>
   );
 };
 
-const ConfirmationScreen = ({ onConfirm }: { onConfirm: () => void }) => {
+const ConfirmationScreen = ({ onConfirm, uploadedVideoName }: { onConfirm: () => void, uploadedVideoName?: string | null }) => {
   return (
-    <div className="absolute inset-0 z-20 bg-black flex flex-col items-center justify-between px-8 py-6">
+    <div className="absolute inset-0 z-20 bg-black flex flex-col items-center justify-between px-4 py-6">
       <div />
       <div className="text-center mb-8">
         <h2 className="text-white text-xl font-semibold mb-2">
           Confirm configuration
         </h2>
         <p className="text-gray-300 text-sm">
-          Review delivery validation configuration
+          See delivery validation on the sample video, or <span className="font-bold text-[#BCAAFF]">drag and drop</span> your own in the phone area to try it out
         </p>
+        {uploadedVideoName && (
+          <div className="mt-4 bg-black/80 text-white text-xs px-4 py-2 rounded shadow font-bold max-w-[90%] text-center mx-auto">
+            Video '{uploadedVideoName}' uploaded! It will be used in the preview.
+          </div>
+        )}
       </div>
-
       <button
         onClick={onConfirm}
-        className="bg-blue-600 hover:bg-blue-700 text-sm transition-colors text-white font-medium py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
+        className="bg-[#4938e2] hover:bg-[#4938e2]/90 text-sm transition-colors text-white font-bold py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
       >
-        Confirm and Preview
+        Confirm And Preview
       </button>
     </div>
   );
@@ -87,6 +79,7 @@ export const Phone = () => {
 
   const [videoSource, setVideoSource] = useState("/Delivery.mp4");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [uploadedVideoName, setUploadedVideoName] = useState<string | null>(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const CAPTURE_REASON_CODES = [
@@ -117,6 +110,7 @@ export const Phone = () => {
 
       const objectURL = URL.createObjectURL(videoFile);
       setVideoSource(objectURL);
+      setUploadedVideoName(videoFile.name);
 
       setIsConfirmed(false);
       setCapturedResult(null);
@@ -426,16 +420,19 @@ export const Phone = () => {
   }, [isConfirmed, capturedResult, CAPTURE_REASON_CODES, state?.scanMode]);
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="flex justify-center items-center w-[360px] min-h-screen relative">
+      {/* iPhone 14 background image */}
+      <img src="/iPhone 14.png" alt="iPhone 14 frame" className="absolute z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none" />
       <div
-        className={`relative w-80 h-[600px] rounded-[2.5rem] bg-black shadow-xl overflow-hidden border-4 ${
-          isDragOver ? "border-blue-400 bg-blue-50" : "border-gray-900"
+        className={`relative w-80 rounded-[2.5rem] bg-black shadow-xl overflow-hidden ${
+          isDragOver ? "bg-blue-50" : ""
         } transition-colors duration-200`}
+        style={{ height: '693.76px' }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <StatusBar />
+        <StatusBar theme={capturedResult ? "light" : "dark"} />
 
         {isDragOver && (
           <div className="absolute inset-0 z-30 bg-blue-500 bg-opacity-20 flex items-center justify-center">
@@ -470,7 +467,7 @@ export const Phone = () => {
               />
             )}
 
-            {!isConfirmed && <ConfirmationScreen onConfirm={handleConfirm} />}
+            {!isConfirmed && <ConfirmationScreen onConfirm={handleConfirm} uploadedVideoName={uploadedVideoName} />}
 
             {finalDecision && isConfirmed && !capturedResult && (
               <>
