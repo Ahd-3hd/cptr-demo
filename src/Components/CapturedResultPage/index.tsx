@@ -13,11 +13,13 @@ interface CapturedResultPageProps {
     };
   };
   onBack: () => void;
+  onCompleteDelivery: () => void;
 }
 
 export const CapturedResultPage = ({
   result,
   onBack,
+  onCompleteDelivery,
 }: CapturedResultPageProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -98,7 +100,7 @@ export const CapturedResultPage = ({
         </button>
 
         <button
-          onClick={onBack}
+          onClick={onCompleteDelivery}
           className="bg-black text-sm transition-colors text-white font-bold py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
         >
           Complete Delivery

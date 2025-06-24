@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { Suggestions } from "../Suggestions";
 import { Steps } from "../Steps";
-import { AppContext } from "../../Context/AppContext";
+import { AppContext, AppDispatchContext } from "../../Context/AppContext";
 import { CapturedResultPage } from "../CapturedResultPage";
 
 const StatusBar = ({ theme = "light" }: { theme?: "light" | "dark" }) => {
@@ -28,7 +28,7 @@ const ConfirmationScreen = ({ onConfirm, uploadedVideoName }: { onConfirm: () =>
           Confirm configuration
         </h2>
         <p className="text-gray-300 text-sm">
-          See delivery validation on the sample video, or <span className="font-bold text-[#BCAAFF]">drag and drop</span> your own in the phone area to try it out
+          See delivery validation on the sample video
         </p>
         {uploadedVideoName && (
           <div className="mt-4 bg-black/80 text-white text-xs px-4 py-2 rounded shadow font-bold max-w-[90%] text-center mx-auto">
@@ -58,6 +58,7 @@ const MODEL_HEIGHT = 341;
 
 export const Phone = () => {
   const state = useContext(AppContext);
+  const dispatch = useContext(AppDispatchContext);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [finalDecision, setFinalDecision] = useState<{
@@ -77,9 +78,13 @@ export const Phone = () => {
     };
   } | null>(null);
 
-  const [videoSource, setVideoSource] = useState("/Delivery.mp4");
   const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadedVideoName, setUploadedVideoName] = useState<string | null>(null);
+  const [uploadedVideoName, setUploadedVideoName] = useState<string | null>(
+    null
+  );
+
+  const [pendingCapture, setPendingCapture] = useState(false);
+  const pendingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const CAPTURE_REASON_CODES = [
@@ -101,15 +106,17 @@ export const Phone = () => {
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files);
-    const videoFile = files.find((file) => file.type === "video/mp4");
+    const videoFile = files.find(
+      (file) => file.type === "video/mp4" || file.type === "video/quicktime"
+    );
 
     if (videoFile) {
-      if (videoSource.startsWith("blob:")) {
-        URL.revokeObjectURL(videoSource);
+      if (state?.video.startsWith("blob:")) {
+        URL.revokeObjectURL(state?.video);
       }
 
       const objectURL = URL.createObjectURL(videoFile);
-      setVideoSource(objectURL);
+      dispatch?.({ type: "video", value: objectURL });
       setUploadedVideoName(videoFile.name);
 
       setIsConfirmed(false);
@@ -125,11 +132,11 @@ export const Phone = () => {
 
   useEffect(() => {
     return () => {
-      if (videoSource.startsWith("blob:")) {
-        URL.revokeObjectURL(videoSource);
+      if (state?.video.startsWith("blob:")) {
+        URL.revokeObjectURL(state?.video);
       }
     };
-  }, [videoSource]);
+  }, [state?.video]);
 
   const handleConfirm = () => {
     setIsConfirmed(true);
@@ -147,6 +154,14 @@ export const Phone = () => {
     if (videoRef.current) {
       videoRef.current.play();
     }
+  };
+
+  // Handler to return to confirmation screen
+  const handleCompleteDelivery = () => {
+    setIsConfirmed(false);
+    setCapturedResult(null);
+    setFinalDecision(null);
+    setUploadedVideoName(null);
   };
 
   const handleManualCapture = async () => {
@@ -189,6 +204,56 @@ export const Phone = () => {
       console.error("Error during manual capture:", error);
     }
   };
+
+  // 4-second timeout logic for automatic mode
+  useEffect(() => {
+    if (
+      isConfirmed &&
+      state?.scanMode === "automatic" &&
+      !capturedResult
+    ) {
+      let timeoutId: NodeJS.Timeout;
+      const video = videoRef.current;
+      if (video) {
+        // Wait for video to be ready
+        const onCanPlay = () => {
+          timeoutId = setTimeout(() => {
+            if (!capturedResult && video) {
+              // Pause video and grab frame
+              video.pause();
+              const canvas = document.createElement("canvas");
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              const ctx = canvas.getContext("2d");
+              if (ctx) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                setCapturedResult({
+                  decision: {
+                    reasonCode: 'timeout',
+                    description: 'Include the dropoff location, and address, if possible',
+                  },
+                  image: {
+                    data: imageData.data,
+                    width: imageData.width,
+                    height: imageData.height,
+                  },
+                });
+              }
+            }
+          }, 6000);
+        };
+        video.addEventListener("canplay", onCanPlay);
+        // If already ready
+        if (video.readyState >= 2) onCanPlay();
+        return () => {
+          clearTimeout(timeoutId);
+          video.removeEventListener("canplay", onCanPlay);
+        };
+      }
+    }
+  }, [isConfirmed, state?.scanMode, capturedResult]);
 
   useEffect(() => {
     if (!isConfirmed || capturedResult) return;
@@ -299,6 +364,43 @@ export const Phone = () => {
             const reasonCode = decision.reasonCode;
 
             setFinalDecision(decision);
+
+            // --- DELAYED CAPTURE LOGIC ---
+            if (
+              state?.scanMode === "automatic" &&
+              reasonCode === "package_visible_and_dropoff_location_visible_and_address_visible"
+            ) {
+              // If already pending, do nothing
+              if (!pendingCapture) {
+                setPendingCapture(true);
+                if (pendingTimeoutRef.current) clearTimeout(pendingTimeoutRef.current);
+                pendingTimeoutRef.current = setTimeout(() => {
+                  if (videoRef.current) {
+                    videoRef.current.pause();
+                  }
+                  setCapturedResult({
+                    decision,
+                    image: {
+                      data: new Uint8ClampedArray(image.data),
+                      width: image.width,
+                      height: image.height,
+                    },
+                  });
+                  setPendingCapture(false);
+                }, 500);
+              }
+              return;
+            } else {
+              // If reason code changes before timeout, cancel pending
+              if (pendingCapture) {
+                setPendingCapture(false);
+                if (pendingTimeoutRef.current) {
+                  clearTimeout(pendingTimeoutRef.current);
+                  pendingTimeoutRef.current = null;
+                }
+              }
+            }
+            // --- END DELAYED CAPTURE LOGIC ---
 
             if (
               state?.scanMode === "automatic" &&
@@ -416,8 +518,13 @@ export const Phone = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         (videoRef.current?.srcObject as MediaStream)?.getTracks() || [];
       tracks.forEach((t) => t.stop());
+      // Clean up pending timeout
+      if (pendingTimeoutRef.current) {
+        clearTimeout(pendingTimeoutRef.current);
+        pendingTimeoutRef.current = null;
+      }
     };
-  }, [isConfirmed, capturedResult, CAPTURE_REASON_CODES, state?.scanMode]);
+  }, [isConfirmed, capturedResult, CAPTURE_REASON_CODES, state?.scanMode, pendingCapture]);
 
   return (
     <div className="flex justify-center items-center w-[360px] min-h-screen relative">
@@ -447,17 +554,19 @@ export const Phone = () => {
           <CapturedResultPage
             result={capturedResult}
             onBack={handleBackToVideo}
+            onCompleteDelivery={handleCompleteDelivery}
           />
         ) : (
           <>
             <video
               ref={videoRef}
-              src={videoSource}
+              src={state?.video}
               autoPlay={false}
               controls={false}
               muted
               loop={false}
               className="w-full h-full object-cover"
+              key={state?.video}
             />
 
             {state?.scanMode === "manual" && (
@@ -472,7 +581,7 @@ export const Phone = () => {
             {finalDecision && isConfirmed && !capturedResult && (
               <>
                 {state?.displayMode === "checklist" && (
-                  <Steps finalDecision={finalDecision} />
+                  <Steps finalDecision={finalDecision} mode={state?.scanMode === 'automatic' ? 'automatic' : 'manual'} />
                 )}
                 {state?.displayMode === "suggestion" && (
                   <Suggestions finalDecision={finalDecision} />
