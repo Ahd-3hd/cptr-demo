@@ -222,15 +222,11 @@ export const Phone = () => {
 
   // 4-second timeout logic for automatic mode
   useEffect(() => {
-<<<<<<< HEAD
     if (
       isConfirmed &&
       state?.scanMode === "automatic" &&
       !capturedResult
     ) {
-=======
-    if (isConfirmed && state?.scanMode === "automatic" && !capturedResult) {
->>>>>>> 8ab1d915b03f91eefd9a40df0b12b22608d01a48
       let timeoutId: number;
       const video = videoRef.current;
       if (video) {
