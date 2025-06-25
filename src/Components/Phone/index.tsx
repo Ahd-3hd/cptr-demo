@@ -92,6 +92,12 @@ export const Phone = () => {
 
   const [pendingCapture, setPendingCapture] = useState(false);
   const pendingTimeoutRef = useRef<number | null>(null);
+  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
+  const [pendingCaptureData, setPendingCaptureData] = useState<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    decision: any;
+    image: { data: Uint8ClampedArray; width: number; height: number };
+  } | null>(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const CAPTURE_REASON_CODES = [
@@ -251,7 +257,7 @@ export const Phone = () => {
                 });
               }
             }
-          }, 6000);
+          }, 6000) as unknown as number;
         };
         video.addEventListener("canplay", onCanPlay);
         // If already ready
@@ -381,30 +387,30 @@ export const Phone = () => {
                 "package_visible_and_dropoff_location_visible_and_address_visible"
             ) {
               // If already pending, do nothing
-              if (!pendingCapture) {
+              if (!pendingCapture && !showSuccessFeedback) {
                 setPendingCapture(true);
                 if (pendingTimeoutRef.current)
                   clearTimeout(pendingTimeoutRef.current);
-                pendingTimeoutRef.current = setTimeout(() => {
-                  if (videoRef.current) {
-                    videoRef.current.pause();
-                  }
-                  setCapturedResult({
-                    decision,
-                    image: {
-                      data: new Uint8ClampedArray(image.data),
-                      width: image.width,
-                      height: image.height,
-                    },
-                  });
-                  setPendingCapture(false);
-                }, 500);
+                if (videoRef.current) {
+                  videoRef.current.pause();
+                }
+                setShowSuccessFeedback(true);
+                setPendingCaptureData({
+                  decision,
+                  image: {
+                    data: new Uint8ClampedArray(image.data),
+                    width: image.width,
+                    height: image.height,
+                  },
+                });
               }
               return;
             } else {
               // If reason code changes before timeout, cancel pending
-              if (pendingCapture) {
+              if (pendingCapture || showSuccessFeedback) {
                 setPendingCapture(false);
+                setShowSuccessFeedback(false);
+                setPendingCaptureData(null);
                 if (pendingTimeoutRef.current) {
                   clearTimeout(pendingTimeoutRef.current);
                   pendingTimeoutRef.current = null;
@@ -543,6 +549,24 @@ export const Phone = () => {
     pendingCapture,
   ]);
 
+  // Show feedback for 0.1s before capturing result
+  useEffect(() => {
+    if (showSuccessFeedback && pendingCaptureData) {
+      pendingTimeoutRef.current = setTimeout(() => {
+        setCapturedResult(pendingCaptureData);
+        setPendingCapture(false);
+        setShowSuccessFeedback(false);
+        setPendingCaptureData(null);
+      }, 100) as unknown as number;
+    }
+    return () => {
+      if (pendingTimeoutRef.current) {
+        clearTimeout(pendingTimeoutRef.current);
+        pendingTimeoutRef.current = null;
+      }
+    };
+  }, [showSuccessFeedback, pendingCaptureData]);
+
   return (
     <div className="flex justify-center items-center w-[360px] min-h-screen relative">
       {/* iPhone 14 background image */}
@@ -615,7 +639,12 @@ export const Phone = () => {
                   />
                 )}
                 {state?.displayMode === "suggestion" && (
-                  <Suggestions finalDecision={finalDecision} />
+                  <Suggestions
+                    finalDecision={finalDecision}
+                    mode={
+                      state?.scanMode === "automatic" ? "automatic" : "manual"
+                    }
+                  />
                 )}
               </>
             )}

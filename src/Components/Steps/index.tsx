@@ -90,7 +90,7 @@ export const Steps = ({ finalDecision, mode }: Props) => {
         boxShadow: '0px 0.66px 16.491px 0px rgba(69, 42, 124, 0.05)',
         backdropFilter: 'blur(13.78px)',
       }}
-      className={`absolute left-1/2 w-[90%] -translate-x-1/2 transform p-4 shadow-md ${mode === 'automatic' ? 'bottom-6' : 'bottom-30'}`}
+      className={`absolute left-1/2 w-[90%] -translate-x-1/2 transform p-4 shadow-md ${mode === 'automatic' ? 'bottom-[24px]' : 'bottom-28'}`}
     >
       <div className="grid grid-cols-2 gap-4">
         <div className="flex items-center space-x-2 text-white">
