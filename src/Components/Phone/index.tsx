@@ -19,7 +19,13 @@ const StatusBar = ({ theme = "light" }: { theme?: "light" | "dark" }) => {
   );
 };
 
-const ConfirmationScreen = ({ onConfirm, uploadedVideoName }: { onConfirm: () => void, uploadedVideoName?: string | null }) => {
+const ConfirmationScreen = ({
+  onConfirm,
+  uploadedVideoName,
+}: {
+  onConfirm: () => void;
+  uploadedVideoName?: string | null;
+}) => {
   return (
     <div className="absolute inset-0 z-20 bg-black flex flex-col items-center justify-between px-4 py-6">
       <div />
@@ -32,7 +38,8 @@ const ConfirmationScreen = ({ onConfirm, uploadedVideoName }: { onConfirm: () =>
         </p>
         {uploadedVideoName && (
           <div className="mt-4 bg-black/80 text-white text-xs px-4 py-2 rounded shadow font-bold max-w-[90%] text-center mx-auto">
-            Video '{uploadedVideoName}' uploaded! It will be used in the preview.
+            Video '{uploadedVideoName}' uploaded! It will be used in the
+            preview.
           </div>
         )}
       </div>
@@ -85,11 +92,14 @@ export const Phone = () => {
 
   const [pendingCapture, setPendingCapture] = useState(false);
   const pendingTimeoutRef = useRef<number | null>(null);
+<<<<<<< HEAD
   const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
   const [pendingCaptureData, setPendingCaptureData] = useState<{
     decision: any;
     image: { data: Uint8ClampedArray; width: number; height: number };
   } | null>(null);
+=======
+>>>>>>> 8ab1d915b03f91eefd9a40df0b12b22608d01a48
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const CAPTURE_REASON_CODES = [
@@ -212,11 +222,15 @@ export const Phone = () => {
 
   // 4-second timeout logic for automatic mode
   useEffect(() => {
+<<<<<<< HEAD
     if (
       isConfirmed &&
       state?.scanMode === "automatic" &&
       !capturedResult
     ) {
+=======
+    if (isConfirmed && state?.scanMode === "automatic" && !capturedResult) {
+>>>>>>> 8ab1d915b03f91eefd9a40df0b12b22608d01a48
       let timeoutId: number;
       const video = videoRef.current;
       if (video) {
@@ -232,12 +246,18 @@ export const Phone = () => {
               const ctx = canvas.getContext("2d");
               if (ctx) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(
+                  0,
+                  0,
+                  canvas.width,
+                  canvas.height
+                );
 
                 setCapturedResult({
                   decision: {
-                    reasonCode: 'timeout',
-                    description: 'Include the dropoff location, and address, if possible',
+                    reasonCode: "timeout",
+                    description:
+                      "Include the dropoff location, and address, if possible",
                   },
                   image: {
                     data: imageData.data,
@@ -373,7 +393,8 @@ export const Phone = () => {
             // --- DELAYED CAPTURE LOGIC ---
             if (
               state?.scanMode === "automatic" &&
-              reasonCode === "package_visible_and_dropoff_location_visible_and_address_visible"
+              reasonCode ===
+                "package_visible_and_dropoff_location_visible_and_address_visible"
             ) {
               // If already pending, do nothing
               if (!pendingCapture && !showSuccessFeedback) {
@@ -529,7 +550,13 @@ export const Phone = () => {
         pendingTimeoutRef.current = null;
       }
     };
-  }, [isConfirmed, capturedResult, CAPTURE_REASON_CODES, state?.scanMode, pendingCapture]);
+  }, [
+    isConfirmed,
+    capturedResult,
+    CAPTURE_REASON_CODES,
+    state?.scanMode,
+    pendingCapture,
+  ]);
 
   // Show feedback for 0.1s before capturing result
   useEffect(() => {
@@ -552,12 +579,16 @@ export const Phone = () => {
   return (
     <div className="flex justify-center items-center w-[360px] min-h-screen relative">
       {/* iPhone 14 background image */}
-      <img src="/iPhone 14.png" alt="iPhone 14 frame" className="absolute z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none" />
+      <img
+        src="/iPhone 14.png"
+        alt="iPhone 14 frame"
+        className="absolute z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
+      />
       <div
         className={`relative w-80 rounded-[2.5rem] bg-black shadow-xl overflow-hidden ${
           isDragOver ? "bg-blue-50" : ""
         } transition-colors duration-200`}
-        style={{ height: '693.76px' }}
+        style={{ height: "693.76px" }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -599,12 +630,22 @@ export const Phone = () => {
               />
             )}
 
-            {!isConfirmed && <ConfirmationScreen onConfirm={handleConfirm} uploadedVideoName={uploadedVideoName} />}
+            {!isConfirmed && (
+              <ConfirmationScreen
+                onConfirm={handleConfirm}
+                uploadedVideoName={uploadedVideoName}
+              />
+            )}
 
             {finalDecision && isConfirmed && !capturedResult && (
               <>
                 {state?.displayMode === "checklist" && (
-                  <Steps finalDecision={finalDecision} mode={state?.scanMode === 'automatic' ? 'automatic' : 'manual'} />
+                  <Steps
+                    finalDecision={finalDecision}
+                    mode={
+                      state?.scanMode === "automatic" ? "automatic" : "manual"
+                    }
+                  />
                 )}
                 {state?.displayMode === "suggestion" && (
                   <Suggestions finalDecision={finalDecision} mode={state?.scanMode === 'automatic' ? 'automatic' : 'manual'} />
