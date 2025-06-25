@@ -84,7 +84,7 @@ export const Phone = () => {
   );
 
   const [pendingCapture, setPendingCapture] = useState(false);
-  const pendingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingTimeoutRef = useRef<number | null>(null);
   const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
   const [pendingCaptureData, setPendingCaptureData] = useState<{
     decision: any;
@@ -217,7 +217,7 @@ export const Phone = () => {
       state?.scanMode === "automatic" &&
       !capturedResult
     ) {
-      let timeoutId: NodeJS.Timeout;
+      let timeoutId: number;
       const video = videoRef.current;
       if (video) {
         // Wait for video to be ready
@@ -247,7 +247,7 @@ export const Phone = () => {
                 });
               }
             }
-          }, 6000);
+          }, 6000) as unknown as number;
         };
         video.addEventListener("canplay", onCanPlay);
         // If already ready
@@ -539,7 +539,7 @@ export const Phone = () => {
         setPendingCapture(false);
         setShowSuccessFeedback(false);
         setPendingCaptureData(null);
-      }, 100);
+      }, 100) as unknown as number;
     }
     return () => {
       if (pendingTimeoutRef.current) {
@@ -607,7 +607,7 @@ export const Phone = () => {
                   <Steps finalDecision={finalDecision} mode={state?.scanMode === 'automatic' ? 'automatic' : 'manual'} />
                 )}
                 {state?.displayMode === "suggestion" && (
-                  <Suggestions finalDecision={finalDecision} />
+                  <Suggestions finalDecision={finalDecision} mode={state?.scanMode === 'automatic' ? 'automatic' : 'manual'} />
                 )}
               </>
             )}

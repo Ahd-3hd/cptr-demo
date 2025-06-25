@@ -6,13 +6,14 @@ interface Props {
     title: string;
     description: string;
   };
+  mode?: 'automatic' | 'manual';
 }
 
-export const Suggestions = ({ finalDecision }: Props) => {
+export const Suggestions = ({ finalDecision, mode }: Props) => {
   return (
     <div
       className={classNames(
-        "w-[90%] absolute bottom-30 left-1/2 transform -translate-x-1/2 bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 text-center shadow-md",
+        `w-[90%] absolute left-1/2 transform -translate-x-1/2 bg-opacity-70 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 text-center shadow-md ${mode === 'automatic' ? 'bottom-[24px]' : 'bottom-30'}`,
         {
           "bg-[#0E9B32D9]":
             finalDecision.reasonCode ===
