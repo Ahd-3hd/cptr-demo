@@ -92,14 +92,12 @@ export const Phone = () => {
 
   const [pendingCapture, setPendingCapture] = useState(false);
   const pendingTimeoutRef = useRef<number | null>(null);
-<<<<<<< HEAD
   const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
   const [pendingCaptureData, setPendingCaptureData] = useState<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     decision: any;
     image: { data: Uint8ClampedArray; width: number; height: number };
   } | null>(null);
-=======
->>>>>>> 8ab1d915b03f91eefd9a40df0b12b22608d01a48
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const CAPTURE_REASON_CODES = [
@@ -222,11 +220,7 @@ export const Phone = () => {
 
   // 4-second timeout logic for automatic mode
   useEffect(() => {
-    if (
-      isConfirmed &&
-      state?.scanMode === "automatic" &&
-      !capturedResult
-    ) {
+    if (isConfirmed && state?.scanMode === "automatic" && !capturedResult) {
       let timeoutId: number;
       const video = videoRef.current;
       if (video) {
@@ -395,7 +389,8 @@ export const Phone = () => {
               // If already pending, do nothing
               if (!pendingCapture && !showSuccessFeedback) {
                 setPendingCapture(true);
-                if (pendingTimeoutRef.current) clearTimeout(pendingTimeoutRef.current);
+                if (pendingTimeoutRef.current)
+                  clearTimeout(pendingTimeoutRef.current);
                 if (videoRef.current) {
                   videoRef.current.pause();
                 }
@@ -644,7 +639,12 @@ export const Phone = () => {
                   />
                 )}
                 {state?.displayMode === "suggestion" && (
-                  <Suggestions finalDecision={finalDecision} mode={state?.scanMode === 'automatic' ? 'automatic' : 'manual'} />
+                  <Suggestions
+                    finalDecision={finalDecision}
+                    mode={
+                      state?.scanMode === "automatic" ? "automatic" : "manual"
+                    }
+                  />
                 )}
               </>
             )}
