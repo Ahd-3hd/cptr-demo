@@ -23,7 +23,7 @@ export const Suggestions = ({ finalDecision }: Props) => {
         }
       )}
     >
-      <p className="mb-2 font-bold text-sm">{finalDecision.title}</p>
+      <p className="mb-1 font-bold text-sm">{finalDecision.title}</p>
       <p className="text-xs text-[#ffffffc6]">{finalDecision.description}</p>
     </div>
   );

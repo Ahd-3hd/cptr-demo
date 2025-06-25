@@ -9,9 +9,10 @@ interface Props {
     title: string;
     description: string;
   };
+  mode?: 'automatic' | 'manual';
 }
 
-export const Steps = ({ finalDecision }: Props) => {
+export const Steps = ({ finalDecision, mode }: Props) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const reasonMap: any = {
     too_dark: {
@@ -81,7 +82,16 @@ export const Steps = ({ finalDecision }: Props) => {
   };
 
   return (
-    <div className="absolute bottom-30 left-1/2 w-[90%] -translate-x-1/2 transform rounded-xl bg-[#7D7D7D66] p-4 shadow-md">
+    <div
+      style={{
+        borderRadius: '5.28px',
+        border: '0.551px solid rgba(255,255,255,0.5)',
+        background: 'linear-gradient(84deg, rgba(152,152,152,0.40) 13.33%, rgba(108,108,108,0.07) 167.68%)',
+        boxShadow: '0px 0.66px 16.491px 0px rgba(69, 42, 124, 0.05)',
+        backdropFilter: 'blur(13.78px)',
+      }}
+      className={`absolute left-1/2 w-[90%] -translate-x-1/2 transform p-4 shadow-md ${mode === 'automatic' ? 'bottom-6' : 'bottom-30'}`}
+    >
       <div className="grid grid-cols-2 gap-4">
         <div className="flex items-center space-x-2 text-white">
           <img

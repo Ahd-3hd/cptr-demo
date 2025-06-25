@@ -13,11 +13,13 @@ interface CapturedResultPageProps {
     };
   };
   onBack: () => void;
+  onCompleteDelivery: () => void;
 }
 
 export const CapturedResultPage = ({
   result,
   onBack,
+  onCompleteDelivery,
 }: CapturedResultPageProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -42,22 +44,22 @@ export const CapturedResultPage = ({
   }, [result.image]);
 
   return (
-    <div className="bg-white w-full h-full px-2 py-8 flex flex-col justify-between items-center text-black">
+    <div className="bg-white w-full h-full px-4 py-8 flex flex-col justify-between items-center text-black">
       <div className="w-full">
-        <div className="flex items-center">
+        <div className="flex items-center justify-start mt-6 mb-6">
           <button onClick={onBack} className="cursor-pointer p-2">
             <img src={backIcon} alt="Back" className="h-4 w-4" />
           </button>
 
-          <h2 className="font-medium">Package drop-off</h2>
+          <h2 className="font-bold ml-2 flex items-center">Package drop-off</h2>
         </div>
-        <hr className="h-px my-4 bg-gray-200 border-0" />
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 mb-1">
           <img src={mapMarkerIcon} alt="Map marker" className="h-5 w-5" />
 
           <div>
-            <p className="font-medium text-sm">19 Canning Street, flat 14</p>
-            <p className="text-xs text-gray-500">London, UK</p>
+            <p className="font-medium text-sm mb-1">19 Canning Street, flat 14</p>
+            <p className="text-xs text-gray-500 mb-1">London, UK</p>
+            <div className="mt-6" />
           </div>
         </div>
       </div>
@@ -66,20 +68,20 @@ export const CapturedResultPage = ({
         <div className="w-full">
           {result.decision.reasonCode ===
             "package_visible_and_dropoff_location_visible_and_address_visible" && (
-            <h1 className="text-sm font-bold">🎉 Great job delivering!</h1>
+            <h1 className="text-sm font-bold text-center">🎉 Great job delivering!</h1>
           )}
 
           {result.decision.reasonCode !==
             "package_visible_and_dropoff_location_visible_and_address_visible" && (
-            <p className="text-xs font-bold mb-2">
+            <p className="text-xs font-bold mb-2 text-center">
               ❗{result.decision.description}
             </p>
           )}
           {result.decision.reasonCode !==
             "package_visible_and_dropoff_location_visible_and_address_visible" && (
-            <p className="text-[10px]">
-              Invalid proof of delivery photo may result in a lost package
-              claim. Are you sure you want to submit this photo?
+            <p className="text-[10px] text-center">
+              Invalid proof could lead to a lost package claim.<br />
+              Submit anyway?
             </p>
           )}
         </div>
@@ -89,19 +91,21 @@ export const CapturedResultPage = ({
         />
       </div>
 
-      <button
-        onClick={onBack}
-        className="text-sm transition-colors text-black font-medium py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
-      >
-        Retake Photo
-      </button>
+      <div className="w-full flex flex-col items-center">
+        <button
+          onClick={onBack}
+          className="text-sm transition-colors text-black font-bold py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer mb-2"
+        >
+          Retake Photo
+        </button>
 
-      <button
-        onClick={onBack}
-        className="bg-black text-sm transition-colors text-white font-medium py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
-      >
-        Complete delivery
-      </button>
+        <button
+          onClick={onCompleteDelivery}
+          className="bg-black text-sm transition-colors text-white font-bold py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
+        >
+          Complete Delivery
+        </button>
+      </div>
     </div>
   );
 };

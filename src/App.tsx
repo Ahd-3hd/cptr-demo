@@ -31,6 +31,11 @@ function appReducer(state: State, action: { type: string; value: any }): State {
         ...state,
         scanMode: action.value,
       };
+    case "video":
+      return {
+        ...state,
+        video: action.value,
+      };
     default: {
       throw Error("Unknown action: " + action.type);
     }
@@ -40,10 +45,12 @@ function appReducer(state: State, action: { type: string; value: any }): State {
 export interface State {
   displayMode: "checklist" | "suggestion";
   scanMode: "automatic" | "manual";
+  video: string;
 }
 const initialState: State = {
   displayMode: "checklist",
   scanMode: "automatic",
+  video: "/Delivery.mp4",
 };
 
 export default App;
