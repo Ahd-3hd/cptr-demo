@@ -2,15 +2,11 @@ import { DisplayMode } from "./DisplayMode";
 import { ScanMode } from "./ScanMode";
 import { Title } from "./Title";
 import { VideoSelection } from "./VideoSelection";
-import React, { useContext, useRef, useEffect, useState } from "react";
-import { AppContext } from "../../Context/AppContext";
+import React, { useContext, useEffect, useState } from "react";
 
 export const Configuration = ({
   isConfirmed,
   setIsConfirmed,
-  uploadedVideoName,
-  setUploadedVideoName,
-  resetPhone,
   setResetPhone,
   handleApplyConfig,
   PendingAppContext,
@@ -22,6 +18,7 @@ export const Configuration = ({
   resetPhone: number;
   setResetPhone: React.Dispatch<React.SetStateAction<number>>;
   handleApplyConfig: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   PendingAppContext: React.Context<any>;
 }) => {
   const state = useContext(PendingAppContext);
@@ -49,7 +46,13 @@ export const Configuration = ({
     ) {
       setPendingRestart(false);
     }
-  }, [state?.video, state?.displayMode, state?.scanMode, isConfirmed, lastAppliedConfig]);
+  }, [
+    state?.video,
+    state?.displayMode,
+    state?.scanMode,
+    isConfirmed,
+    lastAppliedConfig,
+  ]);
 
   const handleApply = () => {
     setLastAppliedConfig({

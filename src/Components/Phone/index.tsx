@@ -32,10 +32,8 @@ const MODEL_HEIGHT = 341;
 export const Phone = ({
   isConfirmed,
   setIsConfirmed,
-  uploadedVideoName,
   setUploadedVideoName,
   resetPhone,
-  setResetPhone,
 }: {
   isConfirmed: boolean;
   setIsConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -510,6 +508,7 @@ export const Phone = ({
     CAPTURE_REASON_CODES,
     state?.scanMode,
     pendingCapture,
+    showSuccessFeedback,
   ]);
 
   // Show feedback for 0.1s before capturing result
@@ -573,10 +572,17 @@ export const Phone = ({
           </div>
         )}
 
-        {(!isConfirmed && !capturedResult) && (
-          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.78)' }}>
-            <h2 className="text-white text-2xl font-bold mb-4 text-center">Confirm configuration</h2>
-            <p className="text-gray-200 text-base text-center max-w-xs">See delivery validation on the sample video after clicking "Apply"</p>
+        {!isConfirmed && !capturedResult && (
+          <div
+            className="absolute inset-0 z-30 flex flex-col items-center justify-center"
+            style={{ background: "rgba(0,0,0,0.78)" }}
+          >
+            <h2 className="text-white text-2xl font-bold mb-4 text-center">
+              Confirm configuration
+            </h2>
+            <p className="text-gray-200 text-base text-center max-w-xs">
+              See delivery validation on the sample video after clicking "Apply"
+            </p>
           </div>
         )}
 
