@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { AppContext, AppDispatchContext } from "../../Context/AppContext";
 
-export const VideoSelection = () => {
-  const state = useContext(AppContext);
+export const VideoSelection = ({ ContextOverride }: { ContextOverride?: React.Context<any> }) => {
+  const state = useContext(ContextOverride || AppContext);
   const dispatch = useContext(AppDispatchContext);
 
   const setVideo = (video: string) => {
@@ -15,7 +15,7 @@ export const VideoSelection = () => {
   return (
     <div className="text-white max-w-xl mx-auto">
       <section>
-        <h2 className="text-xl font-bold mb-2">Sample Videos</h2>
+        <h2 className="text-xl font-bold mb-2">Pick a video</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div
             className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 flex flex-col justify-center items-start min-h-[80px] ${
@@ -26,7 +26,10 @@ export const VideoSelection = () => {
             onClick={() => setVideo("/Delivery.mp4")}
           >
             <span className="font-semibold text-lg text-left">
-              Success Delivery Attempt
+              Happy path
+            </span>
+            <span className="text-sm text-gray-300 text-left">
+              First time successful delivery
             </span>
           </div>
           <div
@@ -38,7 +41,10 @@ export const VideoSelection = () => {
             onClick={() => setVideo("/Delivery_unhappy_path.mov")}
           >
             <span className="font-semibold text-lg text-left">
-              Unsuccess Delivery Attempt
+              Unhappy path
+            </span>
+            <span className="text-sm text-gray-300 text-left">
+              Delivery with a re-attempt
             </span>
           </div>
         </div>
