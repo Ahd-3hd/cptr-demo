@@ -8,10 +8,7 @@ export const ScanMode = ({ ContextOverride }: { ContextOverride?: React.Context<
   return (
     <div className="text-white max-w-xl mx-auto">
       <section>
-        <h2 className="text-xl font-bold mb-2">Select experience</h2>
-        <p className="mb-4">
-          Would you like the scan to end automatically or manually?
-        </p>
+        <p className="mb-4 text-lg font-bold">Would you like the scan to end automatically or manually?</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div
             className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
