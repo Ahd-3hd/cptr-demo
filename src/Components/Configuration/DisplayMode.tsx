@@ -1,14 +1,14 @@
 import { useContext } from "react";
 import { AppContext, AppDispatchContext } from "../../Context/AppContext";
 
-export const DisplayMode = () => {
-  const state = useContext(AppContext);
+export const DisplayMode = ({ ContextOverride }: { ContextOverride?: React.Context<any> }) => {
+  const state = useContext(ContextOverride || AppContext);
   const dispatch = useContext(AppDispatchContext);
 
   return (
     <div className="text-white max-w-xl mx-auto">
       <section>
-        <h2 className="text-xl font-bold mb-2">Feedback mode</h2>
+        <h2 className="text-xl font-bold mb-2">Choose a display</h2>
         <p className="mb-4">
           How would you like to display feedback to the user?
         </p>
@@ -30,7 +30,7 @@ export const DisplayMode = () => {
               <span className="font-semibold text-lg">Icons</span>
             </div>
             <p className="text-sm text-gray-300 text-left">
-              Guide users to pass all checks step-by-step
+              Model output displayed as icons
             </p>
           </div>
           
@@ -48,10 +48,10 @@ export const DisplayMode = () => {
             }}
           >
             <div className="flex items-center mb-2 text-left">
-              <span className="font-semibold text-lg">Detailed text</span>
+              <span className="font-semibold text-lg">Text</span>
             </div>
             <p className="text-sm text-gray-300 text-left">
-              Directly suggest desired user behavior changes
+              Model output displayed as text
             </p>
           </div>
         </div>

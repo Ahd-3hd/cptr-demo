@@ -1,14 +1,14 @@
 import { useContext } from "react";
 import { AppContext, AppDispatchContext } from "../../Context/AppContext";
 
-export const ScanMode = () => {
-  const state = useContext(AppContext);
+export const ScanMode = ({ ContextOverride }: { ContextOverride?: React.Context<any> }) => {
+  const state = useContext(ContextOverride || AppContext);
   const dispatch = useContext(AppDispatchContext);
 
   return (
     <div className="text-white max-w-xl mx-auto">
       <section>
-        <h2 className="text-xl font-bold mb-2">End scan</h2>
+        <h2 className="text-xl font-bold mb-2">Select experience</h2>
         <p className="mb-4">
           Would you like the scan to end automatically or manually?
         </p>
@@ -27,11 +27,10 @@ export const ScanMode = () => {
             }}
           >
             <div className="flex items-center mb-2 text-left">
-              <span className="font-semibold text-lg">Automatically</span>
+              <span className="font-semibold text-lg">Auto-capture</span>
             </div>
             <p className="text-sm text-gray-300 text-left">
-              Automatically take valid photo (best practice for time sensitive
-              cases)
+              Ends scan once image passes checks
             </p>
           </div>
           
@@ -49,11 +48,10 @@ export const ScanMode = () => {
             }}
           >
             <div className="flex items-center mb-2 text-left">
-              <span className="font-semibold text-lg">Manually</span>
+              <span className="font-semibold text-lg">Manual capture</span>
             </div>
             <p className="text-sm text-gray-300 text-left">
-              User decide when to take photo (best practice for better image
-              quality)
+              Ends scan when user clicks a button
             </p>
           </div>
         </div>

@@ -1,20 +1,49 @@
-import { useReducer } from "react";
+import { useReducer, useState, createContext } from "react";
 import { Configuration } from "./Components/Configuration";
 import { Phone } from "./Components/Phone";
 import { AppContext, AppDispatchContext } from "./Context/AppContext";
 
+const PendingAppContext = createContext<State | null>(null);
+
 const App = () => {
-  const [state, dispatch] = useReducer(appReducer, initialState);
+  const [pendingConfig, dispatch] = useReducer(appReducer, initialState);
+  const [appliedConfig, setAppliedConfig] = useState(initialState);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [uploadedVideoName, setUploadedVideoName] = useState<string | null>(null);
+  const [resetPhone, setResetPhone] = useState(0);
+
+  // Handler to apply config to phone
+  const handleApplyConfig = () => {
+    setAppliedConfig(pendingConfig);
+  };
 
   return (
-    <AppContext.Provider value={state}>
-      <AppDispatchContext.Provider value={dispatch}>
-        <div className="flex flex-col justify-around p-8 h-screen items-center lg:flex-row">
-          <Configuration />
-          <Phone />
-        </div>
-      </AppDispatchContext.Provider>
-    </AppContext.Provider>
+    <PendingAppContext.Provider value={pendingConfig}>
+      <AppContext.Provider value={appliedConfig}>
+        <AppDispatchContext.Provider value={dispatch}>
+          <div className="flex flex-col justify-around p-8 h-screen items-center lg:flex-row">
+            <Configuration
+              isConfirmed={isConfirmed}
+              setIsConfirmed={setIsConfirmed}
+              uploadedVideoName={uploadedVideoName}
+              setUploadedVideoName={setUploadedVideoName}
+              resetPhone={resetPhone}
+              setResetPhone={setResetPhone}
+              handleApplyConfig={handleApplyConfig}
+              PendingAppContext={PendingAppContext}
+            />
+            <Phone
+              isConfirmed={isConfirmed}
+              setIsConfirmed={setIsConfirmed}
+              uploadedVideoName={uploadedVideoName}
+              setUploadedVideoName={setUploadedVideoName}
+              resetPhone={resetPhone}
+              setResetPhone={setResetPhone}
+            />
+          </div>
+        </AppDispatchContext.Provider>
+      </AppContext.Provider>
+    </PendingAppContext.Provider>
   );
 };
 

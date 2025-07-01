@@ -19,40 +19,6 @@ const StatusBar = ({ theme = "light" }: { theme?: "light" | "dark" }) => {
   );
 };
 
-const ConfirmationScreen = ({
-  onConfirm,
-  uploadedVideoName,
-}: {
-  onConfirm: () => void;
-  uploadedVideoName?: string | null;
-}) => {
-  return (
-    <div className="absolute inset-0 z-20 bg-black flex flex-col items-center justify-between px-4 py-6">
-      <div />
-      <div className="text-center mb-8">
-        <h2 className="text-white text-xl font-semibold mb-2">
-          Confirm configuration
-        </h2>
-        <p className="text-gray-300 text-sm">
-          See delivery validation on the sample video
-        </p>
-        {uploadedVideoName && (
-          <div className="mt-4 bg-black/80 text-white text-xs px-4 py-2 rounded shadow font-bold max-w-[90%] text-center mx-auto">
-            Video '{uploadedVideoName}' uploaded! It will be used in the
-            preview.
-          </div>
-        )}
-      </div>
-      <button
-        onClick={onConfirm}
-        className="bg-[#4938e2] hover:bg-[#4938e2]/90 text-sm transition-colors text-white font-bold py-3 px-8 rounded-lg w-full max-w-xs cursor-pointer"
-      >
-        Confirm And Preview
-      </button>
-    </div>
-  );
-};
-
 export interface Prediction {
   name: string;
   confidence: number;
@@ -63,7 +29,21 @@ const MODEL_PATH =
 const MODEL_WIDTH = 256;
 const MODEL_HEIGHT = 341;
 
-export const Phone = () => {
+export const Phone = ({
+  isConfirmed,
+  setIsConfirmed,
+  uploadedVideoName,
+  setUploadedVideoName,
+  resetPhone,
+  setResetPhone,
+}: {
+  isConfirmed: boolean;
+  setIsConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
+  uploadedVideoName: string | null;
+  setUploadedVideoName: React.Dispatch<React.SetStateAction<string | null>>;
+  resetPhone: number;
+  setResetPhone: React.Dispatch<React.SetStateAction<number>>;
+}) => {
   const state = useContext(AppContext);
   const dispatch = useContext(AppDispatchContext);
 
@@ -74,7 +54,6 @@ export const Phone = () => {
     reasonCode: string;
   } | null>(null);
 
-  const [isConfirmed, setIsConfirmed] = useState(false);
   const [capturedResult, setCapturedResult] = useState<{
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     decision: any;
@@ -86,9 +65,6 @@ export const Phone = () => {
   } | null>(null);
 
   const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadedVideoName, setUploadedVideoName] = useState<string | null>(
-    null
-  );
 
   const [pendingCapture, setPendingCapture] = useState(false);
   const pendingTimeoutRef = useRef<number | null>(null);
@@ -117,25 +93,20 @@ export const Phone = () => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-
     const files = Array.from(e.dataTransfer.files);
     const videoFile = files.find(
       (file) => file.type === "video/mp4" || file.type === "video/quicktime"
     );
-
     if (videoFile) {
       if (state?.video.startsWith("blob:")) {
         URL.revokeObjectURL(state?.video);
       }
-
       const objectURL = URL.createObjectURL(videoFile);
       dispatch?.({ type: "video", value: objectURL });
       setUploadedVideoName(videoFile.name);
-
       setIsConfirmed(false);
       setCapturedResult(null);
       setFinalDecision(null);
-
       if (videoRef.current) {
         videoRef.current.pause();
         videoRef.current.currentTime = 0;
@@ -151,13 +122,6 @@ export const Phone = () => {
     };
   }, [state?.video]);
 
-  const handleConfirm = () => {
-    setIsConfirmed(true);
-    if (videoRef.current) {
-      videoRef.current.play();
-    }
-  };
-
   const handleBackToVideo = async () => {
     setCapturedResult(null);
     setFinalDecision(null);
@@ -169,7 +133,6 @@ export const Phone = () => {
     }
   };
 
-  // Handler to return to confirmation screen
   const handleCompleteDelivery = () => {
     setIsConfirmed(false);
     setCapturedResult(null);
@@ -567,6 +530,21 @@ export const Phone = () => {
     };
   }, [showSuccessFeedback, pendingCaptureData]);
 
+  useEffect(() => {
+    if (isConfirmed && videoRef.current) {
+      videoRef.current.play();
+    }
+  }, [isConfirmed]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+    setCapturedResult(null);
+    setFinalDecision(null);
+  }, [resetPhone]);
+
   return (
     <div className="flex justify-center items-center w-[360px] min-h-screen relative">
       {/* iPhone 14 background image */}
@@ -595,6 +573,13 @@ export const Phone = () => {
           </div>
         )}
 
+        {(!isConfirmed && !capturedResult) && (
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.78)' }}>
+            <h2 className="text-white text-2xl font-bold mb-4 text-center">Confirm configuration</h2>
+            <p className="text-gray-200 text-base text-center max-w-xs">See delivery validation on the sample video after clicking "Apply"</p>
+          </div>
+        )}
+
         {capturedResult ? (
           <CapturedResultPage
             result={capturedResult}
@@ -618,13 +603,6 @@ export const Phone = () => {
               <button
                 className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-14 h-14 bg-white rounded-full border-4 border-gray-300 shadow-lg hover:bg-gray-100 active:scale-95 transition-all duration-150 flex items-center justify-center"
                 onClick={handleManualCapture}
-              />
-            )}
-
-            {!isConfirmed && (
-              <ConfirmationScreen
-                onConfirm={handleConfirm}
-                uploadedVideoName={uploadedVideoName}
               />
             )}
 
